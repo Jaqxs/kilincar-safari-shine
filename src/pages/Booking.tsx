@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Undo2, CheckCircle, Car } from 'lucide-react';
+import { Undo2, CheckCircle, Car, Droplets } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import VehicleSelector from '@/components/vehicles/VehicleSelector';
