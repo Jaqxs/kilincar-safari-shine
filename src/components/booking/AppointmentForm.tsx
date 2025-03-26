@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from "react-hook-form"; 
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -40,24 +39,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { toast } from '@/components/ui/use-toast';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Toaster } from "@/components/ui/toaster";
 import { servicePackages, vehicleTypes, locations } from '@/utils/dummyData';
+import { useBookingForm } from '@/hooks/use-booking-form';
 
 interface AppointmentFormProps {
   vehicleId: string;
   serviceId: string;
   totalPrice: number;
   onComplete: () => void;
-}
-
-interface FormValues {
-  contactName: string;
-  contactPhone: string;
-  date: Date;
-  timeSlot: string;
-  location: string;
-  paymentMethod: string;
-  specialRequests: string;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
@@ -67,65 +65,20 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onComplete
 }) => {
   const navigate = useNavigate();
-  const [additionalServices, setAdditionalServices] = useState<string[]>([]);
+  const { 
+    form, 
+    additionalServices, 
+    toggleAdditionalService, 
+    calculateTotalWithAddons, 
+    onSubmit 
+  } = useBookingForm(onComplete, totalPrice);
   
-  const form = useForm<FormValues>({
-    defaultValues: {
-      contactName: '',
-      contactPhone: '',
-      date: new Date(),
-      timeSlot: '09:00',
-      location: 'dar-central',
-      paymentMethod: 'm-pesa',
-      specialRequests: ''
-    }
-  });
+  const { control, watch, setValue, handleSubmit, formState: { errors } } = form;
   
-  const { register, watch, setValue, handleSubmit, formState: { errors } } = form;
   const watchedDate = watch('date');
   const watchedLocation = watch('location');
   const watchedPaymentMethod = watch('paymentMethod');
   const watchedTimeSlot = watch('timeSlot');
-  
-  // Toggle additional services
-  const toggleAdditionalService = (serviceId: string) => {
-    setAdditionalServices(prev =>
-      prev.includes(serviceId) ? prev.filter(id => id !== serviceId) : [...prev, serviceId]
-    );
-  };
-  
-  // Calculate total price with add-ons
-  const calculateTotalWithAddons = () => {
-    let addonsTotal = 0;
-    if (additionalServices.includes('interior-disinfection')) addonsTotal += 15000;
-    if (additionalServices.includes('engine-cleaning')) addonsTotal += 25000;
-    if (additionalServices.includes('headlight-restoration')) addonsTotal += 20000;
-    return totalPrice + addonsTotal;
-  };
-  
-  // Validate phone number
-  const isPhoneValid = (phone: string) => {
-    return phone.length === 10 && /^[0-9]+$/.test(phone);
-  };
-  
-  // Form submission handler
-  const onSubmit = (data: FormValues) => {
-    if (!isPhoneValid(data.contactPhone)) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid phone number (10 digits).",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Success",
-      description: "Your appointment has been booked!",
-    });
-    
-    onComplete();
-  };
   
   // Handle edit selections
   const handleEditSelections = () => {
@@ -175,207 +128,271 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         </div>
         
         {/* Appointment form fields */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Contact Information</h3>
-            
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="contactName">Full Name</Label>
-                <Input 
-                  id="contactName" 
-                  placeholder="John Doe" 
-                  {...register('contactName', { required: true })}
-                  className={errors.contactName ? "border-destructive" : ""}
+        <Form {...form}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Contact Information</h3>
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={control}
+                  name="contactName"
+                  rules={{ required: "Name is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {errors.contactName && (
-                  <p className="text-xs text-destructive mt-1">Name is required</p>
+                
+                <FormField
+                  control={control}
+                  name="contactPhone"
+                  rules={{ 
+                    required: "Phone number is required", 
+                    validate: (value) => (value.length === 10 && /^[0-9]+$/.test(value)) || "Please enter a valid phone number (10 digits)" 
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="07XXXXXXXX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            {/* Time selection */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Select Date & Time</h3>
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              type="button"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? format(field.value, "PPP") : <span>Select date</span>}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => field.onChange(date)}
+                            initialFocus
+                            disabled={(date) => 
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={control}
+                  name="timeSlot"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Time</FormLabel>
+                      <Select 
+                        value={field.value} 
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="09:00">09:00 AM</SelectItem>
+                          <SelectItem value="10:00">10:00 AM</SelectItem>
+                          <SelectItem value="11:00">11:00 AM</SelectItem>
+                          <SelectItem value="12:00">12:00 PM</SelectItem>
+                          <SelectItem value="13:00">01:00 PM</SelectItem>
+                          <SelectItem value="14:00">02:00 PM</SelectItem>
+                          <SelectItem value="15:00">03:00 PM</SelectItem>
+                          <SelectItem value="16:00">04:00 PM</SelectItem>
+                          <SelectItem value="17:00">05:00 PM</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                  control={control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <Select 
+                        value={field.value} 
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select location" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {locations.map(loc => (
+                            <SelectItem key={loc.id} value={loc.id}>
+                              {loc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method</FormLabel>
+                      <Select 
+                        value={field.value} 
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Payment method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="m-pesa">M-Pesa</SelectItem>
+                          <SelectItem value="tigo-pesa">Tigo Pesa</SelectItem>
+                          <SelectItem value="airtel-money">Airtel Money</SelectItem>
+                          <SelectItem value="cash">Cash on Site</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            {/* Add-ons */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium flex items-center justify-between">
+                <span>Add-ons & Special Requests</span>
+                {additionalServices.length > 0 && (
+                  <Badge variant="outline" className="ml-2 bg-primary/5 text-primary">
+                    {additionalServices.length} selected
+                  </Badge>
                 )}
+              </h3>
+              
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="interior-disinfection"
+                    className="rounded text-primary focus:ring-primary"
+                    checked={additionalServices.includes('interior-disinfection')}
+                    onChange={() => toggleAdditionalService('interior-disinfection')}
+                  />
+                  <label htmlFor="interior-disinfection" className="text-sm flex justify-between w-full">
+                    <span>Interior Disinfection</span>
+                    <span className="font-medium">15,000 TZS</span>
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="engine-cleaning"
+                    className="rounded text-primary focus:ring-primary"
+                    checked={additionalServices.includes('engine-cleaning')}
+                    onChange={() => toggleAdditionalService('engine-cleaning')}
+                  />
+                  <label htmlFor="engine-cleaning" className="text-sm flex justify-between w-full">
+                    <span>Engine Bay Cleaning</span>
+                    <span className="font-medium">25,000 TZS</span>
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="headlight-restoration"
+                    className="rounded text-primary focus:ring-primary"
+                    checked={additionalServices.includes('headlight-restoration')}
+                    onChange={() => toggleAdditionalService('headlight-restoration')}
+                  />
+                  <label htmlFor="headlight-restoration" className="text-sm flex justify-between w-full">
+                    <span>Headlight Restoration</span>
+                    <span className="font-medium">20,000 TZS</span>
+                  </label>
+                </div>
               </div>
               
-              <div>
-                <Label htmlFor="contactPhone">Phone Number</Label>
-                <Input 
-                  id="contactPhone" 
-                  placeholder="07XXXXXXXX" 
-                  {...register('contactPhone', { 
-                    required: true,
-                    validate: isPhoneValid 
-                  })}
-                  className={errors.contactPhone ? "border-destructive" : ""}
-                />
-                {errors.contactPhone && (
-                  <p className="text-xs text-destructive mt-1">Valid phone number required</p>
+              <FormField
+                control={control}
+                name="specialRequests"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Special Requests</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any special requests or notes?"
+                        className="w-full p-2 border rounded-md text-sm"
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Time selection */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Select Date & Time</h3>
-            
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !watchedDate && "text-muted-foreground"
-                      )}
-                      type="button"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {watchedDate ? format(watchedDate, "PPP") : <span>Select date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={watchedDate}
-                      onSelect={(date) => setValue('date', date as Date)}
-                      initialFocus
-                      disabled={(date) => 
-                        date < new Date(new Date().setHours(0, 0, 0, 0))
-                      }
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <Select 
-                value={watchedTimeSlot} 
-                onValueChange={(value) => setValue('timeSlot', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="09:00">09:00 AM</SelectItem>
-                  <SelectItem value="10:00">10:00 AM</SelectItem>
-                  <SelectItem value="11:00">11:00 AM</SelectItem>
-                  <SelectItem value="12:00">12:00 PM</SelectItem>
-                  <SelectItem value="13:00">01:00 PM</SelectItem>
-                  <SelectItem value="14:00">02:00 PM</SelectItem>
-                  <SelectItem value="15:00">03:00 PM</SelectItem>
-                  <SelectItem value="16:00">04:00 PM</SelectItem>
-                  <SelectItem value="17:00">05:00 PM</SelectItem>
-                </SelectContent>
-              </Select>
+              />
             </div>
             
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Select 
-                value={watchedLocation} 
-                onValueChange={(value) => setValue('location', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map(loc => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select 
-                value={watchedPaymentMethod} 
-                onValueChange={(value) => setValue('paymentMethod', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="m-pesa">M-Pesa</SelectItem>
-                  <SelectItem value="tigo-pesa">Tigo Pesa</SelectItem>
-                  <SelectItem value="airtel-money">Airtel Money</SelectItem>
-                  <SelectItem value="cash">Cash on Site</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          {/* Add-ons */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium flex items-center justify-between">
-              <span>Add-ons & Special Requests</span>
-              {additionalServices.length > 0 && (
-                <Badge variant="outline" className="ml-2 bg-primary/5 text-primary">
-                  {additionalServices.length} selected
-                </Badge>
-              )}
-            </h3>
-            
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="interior-disinfection"
-                  className="rounded text-primary focus:ring-primary"
-                  checked={additionalServices.includes('interior-disinfection')}
-                  onChange={() => toggleAdditionalService('interior-disinfection')}
-                />
-                <label htmlFor="interior-disinfection" className="text-sm flex justify-between w-full">
-                  <span>Interior Disinfection</span>
-                  <span className="font-medium">15,000 TZS</span>
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="engine-cleaning"
-                  className="rounded text-primary focus:ring-primary"
-                  checked={additionalServices.includes('engine-cleaning')}
-                  onChange={() => toggleAdditionalService('engine-cleaning')}
-                />
-                <label htmlFor="engine-cleaning" className="text-sm flex justify-between w-full">
-                  <span>Engine Bay Cleaning</span>
-                  <span className="font-medium">25,000 TZS</span>
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="headlight-restoration"
-                  className="rounded text-primary focus:ring-primary"
-                  checked={additionalServices.includes('headlight-restoration')}
-                  onChange={() => toggleAdditionalService('headlight-restoration')}
-                />
-                <label htmlFor="headlight-restoration" className="text-sm flex justify-between w-full">
-                  <span>Headlight Restoration</span>
-                  <span className="font-medium">20,000 TZS</span>
-                </label>
-              </div>
+            <div className="w-full flex justify-between text-base font-semibold pt-4">
+              <span>Total Amount</span>
+              <span>{calculateTotalWithAddons().toLocaleString()} TZS</span>
             </div>
             
-            <Textarea
-              placeholder="Any special requests or notes?"
-              className="w-full p-2 border rounded-md text-sm"
-              rows={2}
-              {...register('specialRequests')}
-            />
-          </div>
-          
-          <div className="w-full flex justify-between text-base font-semibold pt-4">
-            <span>Total Amount</span>
-            <span>{calculateTotalWithAddons().toLocaleString()} TZS</span>
-          </div>
-          
-          <Button 
-            className="w-full"
-            type="submit"
-          >
-            Complete Booking
-          </Button>
-        </form>
+            <Button 
+              className="w-full"
+              type="submit"
+            >
+              Complete Booking
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

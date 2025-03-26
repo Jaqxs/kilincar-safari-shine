@@ -10,6 +10,7 @@ import ServiceCard from '@/components/services/ServiceCard';
 import AppointmentForm from '@/components/booking/AppointmentForm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
 import {
   servicePackages,
   vehicleTypes,
@@ -193,6 +194,7 @@ const Booking: React.FC = () => {
       </main>
       
       <Footer />
+      <Toaster />
     </div>
   );
 };
