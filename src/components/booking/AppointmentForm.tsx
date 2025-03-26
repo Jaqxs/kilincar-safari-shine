@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -23,16 +24,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -339,7 +333,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             </div>
           </div>
           
-          <textarea
+          <Textarea
             placeholder="Any special requests or notes?"
             className="w-full p-2 border rounded-md text-sm"
             rows={2}
@@ -368,12 +362,3 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 };
 
 export default AppointmentForm;
-
-// Define a Label component
-function Label({ ...props }) {
-  return (
-    <FormLabel
-      {...props}
-    />
-  )
-}
