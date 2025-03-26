@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Undo2, CheckCircle, Car, Droplets } from 'lucide-react';
+import { Undo2, CheckCircle, Car, Droplets, CreditCard } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import VehicleSelector from '@/components/vehicles/VehicleSelector';
@@ -64,6 +65,17 @@ const Booking: React.FC = () => {
     setBookingConfirmation(null);
   };
   
+  // Format payment method for display
+  const formatPaymentMethod = (method: string) => {
+    switch (method) {
+      case 'm-pesa': return 'M-Pesa';
+      case 'tigo-pesa': return 'Tigo Pesa';
+      case 'airtel-money': return 'Airtel Money';
+      case 'cash': return 'Cash on Site';
+      default: return method;
+    }
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -105,6 +117,40 @@ const Booking: React.FC = () => {
                 <p className="font-mono bg-background px-4 py-2 rounded border inline-block font-medium">
                   {bookingConfirmation?.reference || '#KLN000000'}
                 </p>
+                
+                {/* Payment information */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="flex items-center justify-center space-x-2 mb-3">
+                    <AnimatedIcon 
+                      icon={CreditCard} 
+                      size={18} 
+                      className="text-muted-foreground" 
+                    />
+                    <h4 className="text-sm font-medium">Payment Information</h4>
+                  </div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Method:</span>
+                    <span>{formatPaymentMethod(bookingConfirmation?.bookingDetails.paymentMethod || 'm-pesa')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Status:</span>
+                    <span className="text-green-600 font-medium">
+                      {bookingConfirmation?.paymentInfo.status === 'completed' ? 'Completed' : 'Pending'}
+                    </span>
+                  </div>
+                  {bookingConfirmation?.paymentInfo.transactionId && (
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Transaction ID:</span>
+                      <span className="font-mono text-xs">
+                        {bookingConfirmation.paymentInfo.transactionId}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm mt-2 pt-2 border-t border-border">
+                    <span className="font-medium">Total Amount:</span>
+                    <span className="font-bold">{bookingConfirmation?.totalPrice.toLocaleString()} TZS</span>
+                  </div>
+                </div>
               </div>
               
               <div className="space-x-4">

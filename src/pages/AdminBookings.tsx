@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Calendar, ClipboardList, Search, User, Phone, MapPin, Clock } from 'lucide-react';
+import { Calendar, ClipboardList, Search, User, Phone, MapPin, Clock, CreditCard } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -73,6 +73,31 @@ const AdminBookings: React.FC = () => {
   const getLocationName = (locationId: string) => 
     locations.find(l => l.id === locationId)?.name || 'Unknown Location';
   
+  // Format payment method for display
+  const formatPaymentMethod = (method: string) => {
+    switch (method) {
+      case 'm-pesa': return 'M-Pesa';
+      case 'tigo-pesa': return 'Tigo Pesa';
+      case 'airtel-money': return 'Airtel Money';
+      case 'cash': return 'Cash on Site';
+      default: return method;
+    }
+  };
+  
+  // Get payment status badge
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">Failed</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -135,12 +160,13 @@ const AdminBookings: React.FC = () => {
                         <TableHead>Date & Time</TableHead>
                         <TableHead>Service</TableHead>
                         <TableHead>Location</TableHead>
+                        <TableHead>Payment</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredBookings.map((booking) => {
-                        const { bookingDetails, reference, timestamp, totalPrice } = booking;
+                        const { bookingDetails, reference, timestamp, totalPrice, paymentInfo } = booking;
                         
                         return (
                           <TableRow key={booking.bookingId}>
@@ -175,6 +201,19 @@ const AdminBookings: React.FC = () => {
                               <div className="flex items-center">
                                 <MapPin className="mr-1 h-3 w-3 text-muted-foreground" />
                                 <span>{getLocationName(bookingDetails.location)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs">{formatPaymentMethod(bookingDetails.paymentMethod)}</span>
+                                  {getPaymentStatusBadge(paymentInfo?.status || 'pending')}
+                                </div>
+                                {paymentInfo?.transactionId && (
+                                  <span className="text-xs text-muted-foreground mt-1">
+                                    {paymentInfo.transactionId}
+                                  </span>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="text-right font-medium">
