@@ -13,6 +13,8 @@ export interface BookingFormValues {
   paymentMethod: string;
   specialRequests: string;
   additionalServices: string[];
+  serviceId?: string; // Added for service selection
+  vehicleId?: string; // Added for vehicle selection
 }
 
 export const useBookingForm = (onComplete: (confirmation: BookingConfirmation) => void, totalPrice: number) => {

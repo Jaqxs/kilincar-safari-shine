@@ -29,7 +29,6 @@ const Booking: React.FC = () => {
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingConfirmation, setBookingConfirmation] = useState<BookingConfirmation | null>(null);
   
-  // Calculate service price based on selected vehicle
   const getServicePrice = (serviceId: string, vehicleId: string) => {
     const vehicle = vehicleTypes.find(v => v.id === vehicleId);
     const service = servicePackages.find(s => s.id === serviceId);
@@ -39,7 +38,6 @@ const Booking: React.FC = () => {
     return Math.round(vehicle.basePrice * service.priceMultiplier);
   };
   
-  // Update URL when selections change
   useEffect(() => {
     const params = new URLSearchParams();
     params.set('vehicle', selectedVehicleId);
@@ -47,24 +45,20 @@ const Booking: React.FC = () => {
     navigate(`/booking?${params.toString()}`, { replace: true });
   }, [selectedVehicleId, selectedServiceId, navigate]);
   
-  // Handle vehicle selection
   const handleVehicleChange = (vehicleId: string) => {
     setSelectedVehicleId(vehicleId);
   };
   
-  // Handle service selection
   const handleServiceSelect = (serviceId: string) => {
     setSelectedServiceId(serviceId);
   };
   
-  // Handle booking completion
   const handleBookingComplete = (confirmation: BookingConfirmation) => {
     setBookingConfirmation(confirmation);
     setBookingComplete(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
-  // Reset booking
   const resetBooking = () => {
     setBookingComplete(false);
     setBookingConfirmation(null);
