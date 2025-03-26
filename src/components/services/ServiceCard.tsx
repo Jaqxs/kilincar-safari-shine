@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { 
   Droplets, 
   Sparkles, 
   Star, 
-  CloudRain, 
-  DropletSlash,
+  CloudRain,
+  Cloud,
   Clock,
   Car
 } from 'lucide-react';
@@ -37,7 +36,7 @@ const iconMap: Record<string, any> = {
   'sparkles': Sparkles,
   'star': Star,
   'cloud-rain': CloudRain,
-  'droplet-slash': DropletSlash
+  'cloud': Cloud
 };
 
 const ServiceCard: React.FC<ServiceCardProps> = ({

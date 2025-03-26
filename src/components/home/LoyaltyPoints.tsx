@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -10,7 +9,8 @@ import {
   Award, 
   ArrowRight,
   Star,
-  BadgePercent
+  BadgePercent,
+  Droplets
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -174,7 +174,7 @@ const LoyaltyPoints: React.FC = () => {
                                   item.category === 'discount' ? 'bg-clay/10' : 'bg-safari/10'}
                               `}>
                                 {item.category === 'service' ? (
-                                  <AnimatedIcon icon={Car} size={20} className="text-tanzanite" />
+                                  <AnimatedIcon icon={Droplets} size={20} className="text-tanzanite" />
                                 ) : item.category === 'discount' ? (
                                   <AnimatedIcon icon={BadgePercent} size={20} className="text-clay" />
                                 ) : (
@@ -234,7 +234,7 @@ const LoyaltyPoints: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: Car,
+                icon: Droplets,
                 title: "Get Your Car Washed",
                 description: "Earn points with every wash service at any of our locations or with our mobile units."
               },

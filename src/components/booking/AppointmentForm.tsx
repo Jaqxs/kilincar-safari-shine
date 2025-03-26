@@ -5,7 +5,7 @@ import {
   Calendar as CalendarIcon, 
   Clock, 
   MapPin, 
-  Car, 
+  Droplets, 
   CreditCard,
   User,
   Phone,
@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,

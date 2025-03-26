@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Cloud, CloudRain, Sun, Wind, Droplets, Calendar } from 'lucide-react';
@@ -145,7 +144,7 @@ const SeasonalOffers: React.FC<SeasonalOffersProps> = ({ className }) => {
                 <div className="bg-safari/5 border border-safari/20 p-4 rounded-lg">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="p-2 bg-safari/20 rounded-full">
-                      <DropletSlash size={18} className="text-safari" />
+                      <Droplets size={18} className="text-safari" />
                     </div>
                     <h5 className="font-medium">Dry Season Specials</h5>
                   </div>
