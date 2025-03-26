@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { toast } from '@/hooks/use-toast';
+import { bookingService, BookingConfirmation } from '@/services/booking-service';
 
 export interface BookingFormValues {
   contactName: string;
@@ -14,8 +15,9 @@ export interface BookingFormValues {
   additionalServices: string[];
 }
 
-export const useBookingForm = (onComplete: () => void, totalPrice: number) => {
+export const useBookingForm = (onComplete: (confirmation: BookingConfirmation) => void, totalPrice: number) => {
   const [additionalServices, setAdditionalServices] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<BookingFormValues>({
     defaultValues: {
@@ -59,7 +61,7 @@ export const useBookingForm = (onComplete: () => void, totalPrice: number) => {
   };
   
   // Form submission handler
-  const onSubmit = (data: BookingFormValues) => {
+  const onSubmit = async (data: BookingFormValues) => {
     if (!isPhoneValid(data.contactPhone)) {
       toast({
         title: "Error",
@@ -69,12 +71,33 @@ export const useBookingForm = (onComplete: () => void, totalPrice: number) => {
       return;
     }
     
-    toast({
-      title: "Success",
-      description: "Your appointment has been booked!",
-    });
-    
-    onComplete();
+    try {
+      setIsSubmitting(true);
+      
+      // Submit booking to our service
+      const confirmation = await bookingService.submitBooking(
+        data, 
+        calculateTotalWithAddons()
+      );
+      
+      toast({
+        title: "Success",
+        description: "Your appointment has been booked!",
+      });
+      
+      // Pass the confirmation back to the component
+      onComplete(confirmation);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to book your appointment. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Booking error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return {
@@ -83,6 +106,7 @@ export const useBookingForm = (onComplete: () => void, totalPrice: number) => {
     toggleAdditionalService,
     calculateTotalWithAddons,
     onSubmit,
-    isPhoneValid
+    isPhoneValid,
+    isSubmitting
   };
 };

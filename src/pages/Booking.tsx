@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -16,6 +15,7 @@ import {
   vehicleTypes,
 } from '@/utils/dummyData';
 import AnimatedIcon from '@/components/common/AnimatedIcon';
+import { BookingConfirmation } from '@/services/booking-service';
 
 const Booking: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -27,6 +27,7 @@ const Booking: React.FC = () => {
     searchParams.get('service') || 'basic'
   );
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [bookingConfirmation, setBookingConfirmation] = useState<BookingConfirmation | null>(null);
   
   // Calculate service price based on selected vehicle
   const getServicePrice = (serviceId: string, vehicleId: string) => {
@@ -57,7 +58,8 @@ const Booking: React.FC = () => {
   };
   
   // Handle booking completion
-  const handleBookingComplete = () => {
+  const handleBookingComplete = (confirmation: BookingConfirmation) => {
+    setBookingConfirmation(confirmation);
     setBookingComplete(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -65,6 +67,7 @@ const Booking: React.FC = () => {
   // Reset booking
   const resetBooking = () => {
     setBookingComplete(false);
+    setBookingConfirmation(null);
   };
   
   return (
@@ -74,7 +77,6 @@ const Booking: React.FC = () => {
       <main className="flex-grow mt-20">
         <div className="container mx-auto px-4 py-12">
           {bookingComplete ? (
-            // Booking confirmation screen
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -107,7 +109,7 @@ const Booking: React.FC = () => {
                   Please save your booking reference:
                 </p>
                 <p className="font-mono bg-background px-4 py-2 rounded border inline-block font-medium">
-                  #KLN{Math.floor(100000 + Math.random() * 900000)}
+                  {bookingConfirmation?.reference || '#KLN000000'}
                 </p>
               </div>
               
@@ -128,9 +130,7 @@ const Booking: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            // Booking form
             <div className="grid lg:grid-cols-12 gap-8">
-              {/* Left column - Selections */}
               <div className="lg:col-span-7 space-y-10">
                 <div className="text-center lg:text-left">
                   <Badge variant="outline" className="mb-3">Booking</Badge>
@@ -142,7 +142,6 @@ const Booking: React.FC = () => {
                   </p>
                 </div>
                 
-                {/* Vehicle selector */}
                 <div>
                   <VehicleSelector 
                     selectedVehicleId={selectedVehicleId}
@@ -150,7 +149,6 @@ const Booking: React.FC = () => {
                   />
                 </div>
                 
-                {/* Service selector */}
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-center">
                     Select Your Service Package
@@ -179,7 +177,6 @@ const Booking: React.FC = () => {
                 </div>
               </div>
               
-              {/* Right column - Appointment form */}
               <div className="lg:col-span-5">
                 <AppointmentForm 
                   vehicleId={selectedVehicleId}

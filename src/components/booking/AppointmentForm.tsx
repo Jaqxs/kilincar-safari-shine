@@ -47,15 +47,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Toaster } from "@/components/ui/toaster";
 import { servicePackages, vehicleTypes, locations } from '@/utils/dummyData';
 import { useBookingForm } from '@/hooks/use-booking-form';
+import { BookingConfirmation } from '@/services/booking-service';
 
 interface AppointmentFormProps {
   vehicleId: string;
   serviceId: string;
   totalPrice: number;
-  onComplete: () => void;
+  onComplete: (confirmation: BookingConfirmation) => void;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
@@ -70,7 +70,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     additionalServices, 
     toggleAdditionalService, 
     calculateTotalWithAddons, 
-    onSubmit 
+    onSubmit,
+    isSubmitting
   } = useBookingForm(onComplete, totalPrice);
   
   const { control, watch, setValue, handleSubmit, formState: { errors } } = form;
@@ -388,8 +389,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             <Button 
               className="w-full"
               type="submit"
+              disabled={isSubmitting}
             >
-              Complete Booking
+              {isSubmitting ? "Processing..." : "Complete Booking"}
             </Button>
           </form>
         </Form>
