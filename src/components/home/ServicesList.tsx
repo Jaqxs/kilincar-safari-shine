@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -72,7 +73,7 @@ const ServicesList: React.FC = () => {
                       `bg-${service.color}/10`
                     )}>
                       <AnimatedIcon 
-                        icon={iconMap[service.icon]} 
+                        icon={iconMap[service.icon] || Droplets} 
                         size={24} 
                         className={`text-${service.color}`} 
                       />

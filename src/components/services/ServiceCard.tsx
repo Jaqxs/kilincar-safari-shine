@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Droplets, 
@@ -54,6 +55,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   onSelect,
   index = 0
 }) => {
+  // Make sure we have a valid icon, fallback to Droplets if not found
+  const IconComponent = iconMap[icon] || Droplets;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,7 +79,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               `bg-${color}/10`
             )}>
               <AnimatedIcon 
-                icon={iconMap[icon]} 
+                icon={IconComponent} 
                 size={24} 
                 className={`text-${color}`} 
                 animation={selected ? "pulse" : "none"}

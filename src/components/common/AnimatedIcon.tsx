@@ -43,6 +43,12 @@ const AnimatedIcon: React.FC<AnimatedIconProps> = ({
     }
   }, [animation]);
 
+  // Make sure Icon is defined before rendering
+  if (!Icon) {
+    console.error('AnimatedIcon received undefined icon prop');
+    return null;
+  }
+
   return (
     <div 
       className={cn(

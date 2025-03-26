@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Cloud, CloudRain, Sun, Wind, Droplets, Calendar } from 'lucide-react';
