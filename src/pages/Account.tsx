@@ -1,9 +1,8 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.tsx";
 import { bookingService, BookingConfirmation } from "@/services/booking-service";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
