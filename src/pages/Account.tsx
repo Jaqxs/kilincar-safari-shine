@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { bookingService, BookingConfirmation } from "@/services/booking-service";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,20 +16,18 @@ export default function Account() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect if not logged in
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/auth");
     }
   }, [isAuthenticated, navigate]);
 
-  // Get user bookings if logged in
   const userBookings: BookingConfirmation[] = user 
     ? bookingService.getUserBookings(user.userId)
     : [];
 
   if (!isAuthenticated || !user) {
-    return null; // Don't render anything until redirect happens
+    return null;
   }
 
   const handleLogout = () => {
@@ -105,7 +103,7 @@ export default function Account() {
                               <div>
                                 <p className="font-medium">Appointment</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {format(new Date(booking.bookingDetails.date), "PPP")} at {booking.bookingDetails.time}
+                                  {format(new Date(booking.bookingDetails.date), "PPP")} at {booking.bookingDetails.timeSlot}
                                 </p>
                               </div>
                             </div>
@@ -114,7 +112,7 @@ export default function Account() {
                               <div>
                                 <p className="font-medium">Service</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {booking.bookingDetails.vehicleType} - {booking.bookingDetails.washType}
+                                  {booking.bookingDetails.serviceId || "Standard"} - {booking.bookingDetails.vehicleId || "Vehicle"}
                                 </p>
                               </div>
                             </div>
