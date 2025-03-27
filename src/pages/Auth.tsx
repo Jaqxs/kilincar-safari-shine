@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -14,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { userService } from "@/services/user-service";
+import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -35,9 +35,16 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function Auth() {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/account");
+    }
+  }, [isAuthenticated, navigate]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -65,7 +72,7 @@ export default function Auth() {
         title: "Login successful",
         description: "Welcome back!",
       });
-      navigate("/booking");
+      navigate("/account");
     } catch (error) {
       toast({
         title: "Login failed",
@@ -89,7 +96,7 @@ export default function Auth() {
         title: "Registration successful",
         description: "Your account has been created",
       });
-      navigate("/booking");
+      navigate("/account");
     } catch (error) {
       toast({
         title: "Registration failed",
