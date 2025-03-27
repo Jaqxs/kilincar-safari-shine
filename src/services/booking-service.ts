@@ -1,5 +1,5 @@
-
 import { BookingFormValues } from "@/hooks/use-booking-form";
+import { userService } from "@/services/user-service";
 
 // Simulate backend response time
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -25,6 +25,7 @@ export interface BookingConfirmation {
     status: 'pending' | 'completed' | 'failed';
     transactionId?: string;
   };
+  userId?: string; // Optional to maintain backward compatibility
 }
 
 export const bookingService = {
@@ -35,6 +36,9 @@ export const bookingService = {
     // Process payment based on method
     const paymentResult = await this.processPayment(bookingData.paymentMethod, totalPrice);
     
+    // Get current user if logged in
+    const currentUser = userService.getCurrentUser();
+    
     // Generate a confirmation response
     const confirmation: BookingConfirmation = {
       bookingId: crypto.randomUUID(),
@@ -42,7 +46,8 @@ export const bookingService = {
       timestamp: new Date().toISOString(),
       bookingDetails: bookingData,
       totalPrice,
-      paymentInfo: paymentResult
+      paymentInfo: paymentResult,
+      userId: currentUser?.userId
     };
     
     // Store in local storage (our "database" for now)
@@ -81,5 +86,10 @@ export const bookingService = {
   getBookingByReference(reference: string): BookingConfirmation | undefined {
     const bookings = this.getAllBookings();
     return bookings.find(booking => booking.reference === reference);
+  },
+  
+  getUserBookings(userId: string): BookingConfirmation[] {
+    const bookings = this.getAllBookings();
+    return bookings.filter(booking => booking.userId === userId);
   }
 };
