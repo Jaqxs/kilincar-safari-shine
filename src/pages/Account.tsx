@@ -1,7 +1,9 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { bookingService, BookingConfirmation } from "@/services/booking-service";
 import Header from "@/components/layout/Header";
@@ -10,17 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarClock, Car, CreditCard, LogOut, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CalendarClock, Car, CreditCard, LogOut, User, Award, Repeat, Clock, Gift, Star, BadgePercent, Droplets } from "lucide-react";
+import { animateNumber } from "@/utils/animationUtils";
+import { rewardsItems, dummyUser } from "@/utils/dummyData";
+import AnimatedIcon from "@/components/common/AnimatedIcon";
+import { useState } from "react";
 
 export default function Account() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const [points, setPoints] = useState(0);
   
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/auth");
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    // Animate points counter
+    animateNumber(0, dummyUser.points, 2000, setPoints);
+  }, []);
 
   const userBookings: BookingConfirmation[] = user 
     ? bookingService.getUserBookings(user.userId)
@@ -44,7 +57,7 @@ export default function Account() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="max-w-4xl mx-auto"
+            className="max-w-5xl mx-auto"
           >
             <div className="flex items-center gap-4 mb-8">
               <Avatar className="h-16 w-16">
@@ -61,8 +74,9 @@ export default function Account() {
             </div>
             
             <Tabs defaultValue="bookings">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="bookings">My Bookings</TabsTrigger>
+                <TabsTrigger value="rewards">My Rewards</TabsTrigger>
                 <TabsTrigger value="profile">Profile</TabsTrigger>
               </TabsList>
               
@@ -142,6 +156,162 @@ export default function Account() {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+              
+              <TabsContent value="rewards" className="mt-6">
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Points Card */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Card className="overflow-hidden bg-gradient-to-br from-primary/90 to-savannah border-0 shadow-xl text-primary-foreground rounded-2xl relative h-full">
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 bg-shine-effect bg-[length:200%_100%] animate-shine opacity-20"></div>
+                      
+                      <CardContent className="p-8">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <Badge variant="outline" className="bg-white/10 border-white/20 text-white backdrop-blur-sm mb-6">
+                              Kilin Rewards
+                            </Badge>
+                            <h3 className="text-2xl font-bold mb-1">Points Balance</h3>
+                            <p className="text-white/70">
+                              {user.name}
+                            </p>
+                          </div>
+                          <div className="p-3 bg-white/10 rounded-full backdrop-blur-sm">
+                            <Award size={24} className="text-white" />
+                          </div>
+                        </div>
+                        
+                        <div className="mt-6 text-5xl font-semibold tracking-tight flex items-baseline">
+                          {points}
+                          <span className="text-lg ml-2 text-white/70">points</span>
+                        </div>
+                        
+                        <div className="mt-8 space-y-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <Award size={16} className="text-white/70" />
+                            <span>Member since {dummyUser.memberSince}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Repeat size={16} className="text-white/70" />
+                            <span>Next reward at 500 points</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Clock size={16} className="text-white/70" />
+                            <span>Points valid for 12 months</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                  
+                  {/* How it works */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Star className="mr-2 h-5 w-5 text-primary" />
+                        How It Works
+                      </CardTitle>
+                      <CardDescription>
+                        Earn and redeem points with every wash
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        {
+                          icon: Droplets,
+                          title: "Get Your Car Washed",
+                          description: "Earn points with every wash service at any of our locations."
+                        },
+                        {
+                          icon: Star,
+                          title: "Collect Kilin Points",
+                          description: "Earn 1 point for every 100 TZS spent. Premium services earn bonus points."
+                        },
+                        {
+                          icon: Gift,
+                          title: "Redeem for Rewards",
+                          description: "Use your points for free services, discounts, or exclusive products."
+                        }
+                      ].map((item, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className={`p-2 rounded-full bg-primary/10`}>
+                            <item.icon size={18} className="text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{item.title}</p>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Available Rewards */}
+                <div className="mt-8">
+                  <h3 className="text-2xl font-bold mb-6 flex items-center">
+                    <Gift size={24} className="mr-2 text-primary" />
+                    Available Rewards
+                  </h3>
+                  
+                  <div className="grid gap-6 md:grid-cols-3">
+                    {rewardsItems.slice(0, 3).map((item) => (
+                      <Card key={item.id} className="border transition-all duration-300 hover:shadow-md">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className={`
+                              p-3 rounded-full 
+                              ${item.category === 'service' ? 'bg-tanzanite/10' : 
+                                item.category === 'discount' ? 'bg-clay/10' : 'bg-safari/10'}
+                            `}>
+                              {item.category === 'service' ? (
+                                <AnimatedIcon icon={Droplets} size={20} className="text-tanzanite" />
+                              ) : item.category === 'discount' ? (
+                                <AnimatedIcon icon={BadgePercent} size={20} className="text-clay" />
+                              ) : (
+                                <AnimatedIcon icon={Gift} size={20} className="text-safari" />
+                              )}
+                            </div>
+                            <Badge variant="outline" className="font-semibold">
+                              {item.points} points
+                            </Badge>
+                          </div>
+                          
+                          <h4 className="font-semibold mb-2">{item.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {item.description}
+                          </p>
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full mt-6 rounded-full"
+                            disabled={points < item.points}
+                          >
+                            {points >= item.points ? (
+                              <>Redeem Now</>
+                            ) : (
+                              <>Need {item.points - points} more points</>
+                            )}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-8 text-center">
+                    <Button variant="outline">
+                      View All Rewards
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="profile" className="mt-6">
